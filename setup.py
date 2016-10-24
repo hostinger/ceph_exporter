@@ -18,7 +18,23 @@
 # along with ceph_exporter.  If not, see
 # <http://www.gnu.org/licenses/>.
 
+import sys
 from setuptools import setup
+
+
+def python2():
+    if sys.version_info[0] == 2:
+        return True
+
+
+def install_requires():
+    pkgs = ['Twisted[tls]',
+            'service-identity',
+            'arrow']
+    if python2():
+        pkgs.append('configparser')
+    return pkgs
+
 
 setup(name = 'ceph_exporter',
       version = '0.1',
@@ -34,7 +50,5 @@ setup(name = 'ceph_exporter',
       entry_points = {
           'console_scripts': ['ceph_exporter=ceph_exporter.main:main']
       },
-      install_requires = ['Twisted[tls]',
-                          'service-identity',
-                          'arrow'],
+      install_requires = install_requires(),
       classifiers = ['Development Status :: 4 - Beta'])
