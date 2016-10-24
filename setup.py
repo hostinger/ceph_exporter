@@ -18,13 +18,32 @@
 # along with ceph_exporter.  If not, see
 # <http://www.gnu.org/licenses/>.
 
+import re
 import sys
+import platform
+from subprocess import check_output
 from setuptools import setup
+
+
+def systemd_used():
+    try:
+        output = check_output(['/bin/systemctl', '--version'], shell=False)
+        if re.match(r'^systemd', output.decode()):
+            return True
+    except OSError:
+        pass
 
 
 def python2():
     if sys.version_info[0] == 2:
         return True
+
+
+def data_files():
+    data_files = []
+    if systemd_used():
+        data_files.append(('/lib/systemd/system', ['ceph_exporter.service']))
+    return data_files
 
 
 def install_requires():
@@ -46,7 +65,7 @@ setup(name = 'ceph_exporter',
                   'ceph_exporter.ceph',
                   'ceph_exporter.ceph.commands',
                   'ceph_exporter.ceph.metrics'],
-      data_files = [('etc', ['ceph_exporter.service'])],
+      data_files = data_files(),
       entry_points = {
           'console_scripts': ['ceph_exporter=ceph_exporter.main:main']
       },
