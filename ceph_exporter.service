@@ -5,7 +5,7 @@ Documentation=https://github.com/jcollie/ceph_exporter
 [Service]
 Type=simple
 WorkingDirectory=/opt/ceph_exporter
-ExecStart=/opt/ceph_exporter/bin/ceph_exporter
+ExecStart=/usr/bin/ceph_exporter
 SyslogIdentifier=ceph_exporter
 
 [Install]
