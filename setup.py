@@ -42,7 +42,7 @@ def python2():
 def data_files():
     data_files = []
     if systemd_used():
-        data_files.append(('/lib/systemd/system', ['ceph_exporter.service']))
+        data_files.append(('/etc/systemd/system', ['ceph_exporter.service']))
     return data_files
 
 
