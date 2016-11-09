@@ -21,6 +21,9 @@
 import sys
 import configparser
 import argparse
+import os
+from datetime import *
+from dateutil.tz import *
 
 from twisted.internet import reactor
 from twisted.logger import globalLogBeginner
@@ -34,6 +37,7 @@ from .ceph.commands.ceph_osd_dump import CephOsdDump
 from .ceph.commands.ceph_pg_dump import CephPgDump
 from .ceph.commands.ceph_quorum_status import CephQuorumStatus
 from .ceph.commands.ceph_status import CephStatus
+
 
 class Main(object):
     log = Logger()
@@ -53,10 +57,14 @@ class Main(object):
         self.ceph_pg_dump = None
         self.ceph_quorum_status = None
         self.ceph_status = None
-        
+
         reactor.callWhenRunning(self.start)
 
+    def set_tz_env(self):
+        os.environ["TZ"] = datetime.now(tzlocal()).tzname()
+
     def start(self):
+        self.set_tz_env()
         self.server             = Server(self.options)
         self.ceph_df            = CephDf(self.fsid, self.options)
         self.ceph_mds_dump      = CephMdsDump(self.fsid, self.options)
