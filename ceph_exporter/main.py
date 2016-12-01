@@ -91,6 +91,9 @@ def main():
     parser.add_argument('--executable',
                         default='/usr/bin/ceph',
                         help="Path to the Ceph command line client executable, default is `/usr/bin/ceph`")
+    parser.add_argument('--enable-per-pg-stats',
+                        dest='enable_per_pg_stats', action='store_true',
+                        help="Enable per pg stats collecting")
 
     options = parser.parse_args()
 
