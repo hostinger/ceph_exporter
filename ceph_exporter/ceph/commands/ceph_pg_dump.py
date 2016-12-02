@@ -132,111 +132,112 @@ class CephPgDump(Ceph):
                    osd['fs_perf_stat']['commit_latency_ms'] / 1000.0,
                    timestamp)
 
-        for pg in data['pg_stats']:
-            Sample('ceph_pg',
-                   [Label('fsid', self.fsid),
-                    Label('pool', pgid_to_pool(pg['pgid'])),
-                    Label('pgid', pg['pgid'])],
-                   1,
-                   timestamp)
+        if self.options.enable_per_pg_stats:
+            for pg in data['pg_stats']:
+                Sample('ceph_pg',
+                       [Label('fsid', self.fsid),
+                        Label('pool', pgid_to_pool(pg['pgid'])),
+                        Label('pgid', pg['pgid'])],
+                       1,
+                       timestamp)
 
-            Sample('ceph_storage_bytes',
-                   [Label('fsid', self.fsid),
-                    Label('scope', 'pg'),
-                    Label('pool', pgid_to_pool(pg['pgid'])),
-                    Label('pgid', pg['pgid']),
-                    Label('type', 'used')],
-                   pg['stat_sum']['num_bytes'],
-                   timestamp)
-
-            for key, stat in [('num_objects', 'objects'),
-                              ('num_object_clones', 'clones'),
-                              ('num_object_copies', 'copies'),
-                              ('num_objects_missing_on_primary', 'missing_on_primary'),
-                              ('num_objects_degraded', 'degraded'),
-                              ('num_objects_misplaced', 'misplaced'),
-                              ('num_objects_unfound', 'unfound'),
-                              ('num_objects_dirty', 'dirty')]:
-
-                Sample('ceph_objects',
+                Sample('ceph_storage_bytes',
                        [Label('fsid', self.fsid),
                         Label('scope', 'pg'),
                         Label('pool', pgid_to_pool(pg['pgid'])),
                         Label('pgid', pg['pgid']),
-                        Label('type', stat)],
-                       pg['stat_sum'][key],
+                        Label('type', 'used')],
+                       pg['stat_sum']['num_bytes'],
                        timestamp)
 
-            for direction in ['read', 'write']:
-                Sample('ceph_{}_ops'.format(direction),
-                       [Label('fsid', self.fsid),
-                        Label('scope', 'pg'),
-                        Label('pool', pgid_to_pool(pg['pgid'])),
-                        Label('pgid', pg['pgid'])],
-                       pg['stat_sum']['num_{}'.format(direction)],
-                       timestamp)
+                for key, stat in [('num_objects', 'objects'),
+                                  ('num_object_clones', 'clones'),
+                                  ('num_object_copies', 'copies'),
+                                  ('num_objects_missing_on_primary', 'missing_on_primary'),
+                                  ('num_objects_degraded', 'degraded'),
+                                  ('num_objects_misplaced', 'misplaced'),
+                                  ('num_objects_unfound', 'unfound'),
+                                  ('num_objects_dirty', 'dirty')]:
 
-                Sample('ceph_{}_bytes'.format(direction),
-                       [Label('fsid', self.fsid),
-                        Label('scope', 'pg'),
-                        Label('pool', pgid_to_pool(pg['pgid'])),
-                        Label('pgid', pg['pgid'])],
-                       pg['stat_sum']['num_{}_kb'.format(direction)] * 1024,
-                       timestamp)
+                    Sample('ceph_objects',
+                           [Label('fsid', self.fsid),
+                            Label('scope', 'pg'),
+                            Label('pool', pgid_to_pool(pg['pgid'])),
+                            Label('pgid', pg['pgid']),
+                            Label('type', stat)],
+                           pg['stat_sum'][key],
+                           timestamp)
 
-            for stat in ['objects', 'bytes', 'keys']:
-                Sample('ceph_{}_recovered'.format(stat),
-                       [Label('fsid', self.fsid),
-                        Label('scope', 'pg'),
-                        Label('pool', pgid_to_pool(pg['pgid'])),
-                        Label('pgid', pg['pgid'])],
-                       pg['stat_sum']['num_{}_recovered'.format(stat)],
-                       timestamp)
+                for direction in ['read', 'write']:
+                    Sample('ceph_{}_ops'.format(direction),
+                           [Label('fsid', self.fsid),
+                            Label('scope', 'pg'),
+                            Label('pool', pgid_to_pool(pg['pgid'])),
+                            Label('pgid', pg['pgid'])],
+                           pg['stat_sum']['num_{}'.format(direction)],
+                           timestamp)
 
-            for key, stat in [('last_fresh', 'last_fresh'),
-                              ('last_change', 'last_change'),
-                              ('last_active', 'last_active'),
-                              ('last_peered', 'last_peered'),
-                              ('last_clean', 'last_clean'),
-                              ('last_became_active', 'last_became_active'),
-                              ('last_became_peered', 'last_became_peered'),
-                              ('last_unstale', 'last_unstale'),
-                              ('last_undegraded', 'last_undegraded'),
-                              ('last_fullsized', 'last_fullsized'),
-                              ('last_scrub_stamp', 'last_scrub'),
-                              ('last_deep_scrub_stamp', 'last_deep_scrub'),
-                              ('last_clean_scrub_stamp', 'last_clean_scrub')]:
-                if key in pg:
-                    value = arrow.get(pg[key]).replace(tzinfo = tzlocal()).float_timestamp
-                    Sample('ceph_pg_timestamp',
+                    Sample('ceph_{}_bytes'.format(direction),
+                           [Label('fsid', self.fsid),
+                            Label('scope', 'pg'),
+                            Label('pool', pgid_to_pool(pg['pgid'])),
+                            Label('pgid', pg['pgid'])],
+                           pg['stat_sum']['num_{}_kb'.format(direction)] * 1024,
+                           timestamp)
+
+                for stat in ['objects', 'bytes', 'keys']:
+                    Sample('ceph_{}_recovered'.format(stat),
+                           [Label('fsid', self.fsid),
+                            Label('scope', 'pg'),
+                            Label('pool', pgid_to_pool(pg['pgid'])),
+                            Label('pgid', pg['pgid'])],
+                           pg['stat_sum']['num_{}_recovered'.format(stat)],
+                           timestamp)
+
+                for key, stat in [('last_fresh', 'last_fresh'),
+                                  ('last_change', 'last_change'),
+                                  ('last_active', 'last_active'),
+                                  ('last_peered', 'last_peered'),
+                                  ('last_clean', 'last_clean'),
+                                  ('last_became_active', 'last_became_active'),
+                                  ('last_became_peered', 'last_became_peered'),
+                                  ('last_unstale', 'last_unstale'),
+                                  ('last_undegraded', 'last_undegraded'),
+                                  ('last_fullsized', 'last_fullsized'),
+                                  ('last_scrub_stamp', 'last_scrub'),
+                                  ('last_deep_scrub_stamp', 'last_deep_scrub'),
+                                  ('last_clean_scrub_stamp', 'last_clean_scrub')]:
+                    if key in pg:
+                        value = arrow.get(pg[key]).replace(tzinfo = tzlocal()).float_timestamp
+                        Sample('ceph_pg_timestamp',
+                               [Label('fsid', self.fsid),
+                                Label('pool', pgid_to_pool(pg['pgid'])),
+                                Label('pgid', pg['pgid']),
+                                Label('event', stat)],
+                               value,
+                               timestamp)
+
+                for state in self.states:
+                    if pg['state'] == state:
+                        value = 1
+                    else:
+                        value = 0
+                    Sample('ceph_pg_state',
                            [Label('fsid', self.fsid),
                             Label('pool', pgid_to_pool(pg['pgid'])),
                             Label('pgid', pg['pgid']),
-                            Label('event', stat)],
+                            Label('state', state)],
                            value,
                            timestamp)
-
-            for state in self.states:
-                if pg['state'] == state:
-                    value = 1
-                else:
-                    value = 0
-                Sample('ceph_pg_state',
-                       [Label('fsid', self.fsid),
-                        Label('pool', pgid_to_pool(pg['pgid'])),
-                        Label('pgid', pg['pgid']),
-                        Label('state', state)],
-                       value,
-                       timestamp)
-            if pg['state'] not in self.states:
-                self.log.debug('Unknown state "{state:}"', state = pg['state'])
-                Sample('ceph_pg_state',
-                       [Label('fsid', self.fsid),
-                        Label('pool', pgid_to_pool(pg['pgid'])),
-                        Label('pgid', pg['pgid']),
-                        Label('state', pg['state'])],
-                       1,
-                       timestamp)
+                if pg['state'] not in self.states:
+                    self.log.debug('Unknown state "{state:}"', state = pg['state'])
+                    Sample('ceph_pg_state',
+                           [Label('fsid', self.fsid),
+                            Label('pool', pgid_to_pool(pg['pgid'])),
+                            Label('pgid', pg['pgid']),
+                            Label('state', pg['state'])],
+                           1,
+                           timestamp)
 
         for pool in data['pool_stats']:
             for key, stat in [('num_objects', 'objects'),
